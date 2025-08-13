@@ -1,311 +1,157 @@
-import React, { useMemo, useState } from "react";
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ONLYhotAI — Your AI. Your Fantasy. Anytime.</title>
+  <meta name="description" content="ONLYhotAI — AI companions with 3D avatars, outfits, voice & private calls. Coming soon. Join the waitlist.">
+  <meta property="og:title" content="ONLYhotAI — Your AI. Your Fantasy. Anytime.">
+  <meta property="og:description" content="3D AI companions • Outfits • Voice • Private rooms. Join the waitlist.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://onlyhotai.com/">
+  <meta name="theme-color" content="#0b0b12" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Ccircle cx='128' cy='128' r='120' fill='%23ff2d8a'/%3E%3Ctext x='50%25' y='57%25' text-anchor='middle' font-size='140' font-family='Arial' fill='white'%3E🔥%3C/text%3E%3C/svg%3E" />
+  <!-- Tailwind (CDN for quick single-file landing) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Neon gradient background */
+    .bg-neon {
+      background: radial-gradient(1200px 600px at 20% 10%, rgba(255,45,138,.25), transparent 50%),
+                  radial-gradient(1200px 600px at 80% 20%, rgba(96,165,250,.25), transparent 50%),
+                  radial-gradient(900px 500px at 50% 80%, rgba(139,92,246,.20), transparent 60%),
+                  #0b0b12;
+    }
+    .glass { backdrop-filter: blur(10px); background: rgba(255,255,255,0.06); }
+    .glow { box-shadow: 0 0 0 2px rgba(255,255,255,.05), 0 10px 30px rgba(255,45,138,.25), 0 0 60px rgba(139,92,246,.15); }
+    .badge { background: linear-gradient(135deg,#ff2d8a 0%,#8b5cf6 100%); }
+    .btn-primary { background: linear-gradient(135deg,#ff2d8a 0%,#8b5cf6 100%); }
+    .btn-primary:hover { filter: brightness(1.08); }
+    .outline-neon { box-shadow: 0 0 0 1px rgba(255,45,138,.5), inset 0 0 0 1px rgba(255,255,255,.06); }
+  </style>
+</head>
+<body class="bg-neon text-white antialiased">
+  <!-- Header -->
+  <header class="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
+    <a href="#" class="flex items-center gap-3 group">
+      <div class="w-9 h-9 rounded-full flex items-center justify-center badge font-bold">OH</div>
+      <div>
+        <div class="font-semibold tracking-wide">ONLYhotAI</div>
+        <div class="text-xs/4 text-white/60 -mt-0.5">Your AI. Your Fantasy.</div>
+      </div>
+    </a>
+    <nav class="hidden sm:flex items-center gap-6 text-sm text-white/80">
+      <span class="inline-flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-pink-500 animate-pulse"></span> Coming soon</span>
+      <a href="#features" class="hover:text-white">Features</a>
+      <a href="#waitlist" class="hover:text-white">Waitlist</a>
+    </nav>
+  </header>
 
-// Single-file React preview of the ONLYhotAI hub UI (no backend yet)
-// Tailwind is available in canvas preview. In a real Next.js app, paste this into app/page.tsx
-// and ensure Tailwind is configured. Replace emoji placeholders with RPM <canvas> when wiring Three.js.
-
-const CATEGORIES = [
-  { key: "girl", label: "Girl", color: "from-pink-500 to-fuchsia-500", icon: "👩" },
-  { key: "man", label: "Man", color: "from-sky-500 to-blue-600", icon: "👨" },
-  { key: "trans", label: "Trans", color: "from-amber-500 to-violet-600", icon: "🏳️‍⚧️" },
-];
-
-const PRESETS: Record<string, { name: string; emoji: string; outfits: string[]; lines: string[] }[]> = {
-  girl: [
-    {
-      name: "Luna",
-      emoji: "🧍‍♀️",
-      outfits: ["Leather + Visor", "Red Dress", "Neo Kimono"],
-      lines: [
-        "Hey babe, ready for our next adventure?",
-        "I saved a surprise for you tonight…",
-      ],
-    },
-    {
-      name: "Sophia",
-      emoji: "💃",
-      outfits: ["Black Suit", "Blue Evening", "Jeans + Tee"],
-      lines: ["You look amazing today…", "Where are we flying next?"],
-    },
-    {
-      name: "Maya",
-      emoji: "🏃‍♀️",
-      outfits: ["Gym Fit", "Hoodie + Leggings", "Racing Suit"],
-      lines: ["Let’s hit the gym together!", "I challenge you to a race…"],
-    },
-  ],
-  man: [
-    {
-      name: "Ethan",
-      emoji: "🧍‍♂️",
-      outfits: ["Black Suit", "Chino Beige", "Hoodie + Sneakers"],
-      lines: ["How was your day, gorgeous?", "I booked us a weekend getaway."],
-    },
-    {
-      name: "Kai",
-      emoji: "🏄‍♂️",
-      outfits: ["Swim + Shell", "Shorts + Tee", "Hawaiian + Shades"],
-      lines: ["Waves are perfect today, wanna join?", "I made you the best mojito…"],
-    },
-  ],
-  trans: [
-    {
-      name: "Alexis",
-      emoji: "👠",
-      outfits: ["Silver Glam", "Black Body + Leather", "Violet Mini"],
-      lines: ["You’re my favorite person here.", "Wanna dance until sunrise?"],
-    },
-    {
-      name: "Riley",
-      emoji: "🧍",
-      outfits: ["Ripped Jeans + Tee", "Crop + Cargo", "Bomber + Mini Skirt"],
-      lines: ["Where should we go tonight?", "I cooked something special for you…"],
-    },
-  ],
-};
-
-function NeonCard({ children, className = "" }: React.PropsWithChildren<{ className?: string }>) {
-  return (
-    <div
-      className={
-        "rounded-2xl p-4 md:p-6 bg-white/5 backdrop-blur outline outline-1 outline-white/10 shadow-[0_0_0_2px_rgba(255,255,255,0.03),0_10px_30px_rgba(255,45,138,.2),0_0_60px_rgba(139,92,246,.15)] " +
-        className
-      }
-    >
-      {children}
-    </div>
-  );
-}
-
-function Header({ onHome }: { onHome: () => void }) {
-  return (
-    <header className="max-w-6xl mx-auto px-4 py-5 flex items-center justify-between">
-      <button onClick={onHome} className="flex items-center gap-3 group">
-        <div className="w-9 h-9 rounded-full grid place-items-center text-sm font-bold bg-gradient-to-tr from-pink-500 to-violet-500">OH</div>
-        <div>
-          <div className="font-semibold tracking-wide">ONLYhotAI</div>
-          <div className="text-xs text-white/60 -mt-0.5">Your AI. Your Fantasy.</div>
-        </div>
-      </button>
-      <nav className="hidden sm:flex items-center gap-6 text-sm text-white/80">
-        <span className="inline-flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-pink-500 animate-pulse"/> Live Preview</span>
-        <a href="#waitlist" className="hover:text-white">Waitlist</a>
-      </nav>
-    </header>
-  );
-}
-
-export default function App() {
-  const [route, setRoute] = useState<{ page: "home" | "category" | "avatar"; cat?: string; idx?: number }>({
-    page: "home",
-  });
-
-  return (
-    <div className="min-h-screen text-white" style={{
-      background:
-        "radial-gradient(1200px 600px at 20% 10%, rgba(255,45,138,.25), transparent 50%)," +
-        "radial-gradient(1200px 600px at 80% 20%, rgba(96,165,250,.25), transparent 50%)," +
-        "radial-gradient(900px 500px at 50% 80%, rgba(139,92,246,.20), transparent 60%),#0b0b12",
-    }}>
-      <Header onHome={() => setRoute({ page: "home" })} />
-
-      {route.page === "home" && <Home onPick={(key) => setRoute({ page: "category", cat: key })} />}
-      {route.page === "category" && route.cat && (
-        <Category
-          cat={route.cat}
-          onBack={() => setRoute({ page: "home" })}
-          onOpen={(idx) => setRoute({ page: "avatar", cat: route.cat, idx })}
-        />
-      )}
-      {route.page === "avatar" && route.cat && typeof route.idx === "number" && (
-        <AvatarView
-          cat={route.cat}
-          index={route.idx}
-          onBack={() => setRoute({ page: "category", cat: route.cat })}
-        />
-      )}
-
-      <Footer />
-    </div>
-  );
-}
-
-function Home({ onPick }: { onPick: (key: string) => void }) {
-  return (
-    <main className="max-w-6xl mx-auto px-4 pt-6 pb-16">
-      <div className="max-w-2xl">
-        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-tr from-pink-500 to-violet-500">3D AI Companions</span>
-        <h1 className="mt-5 text-4xl md:text-6xl font-extrabold tracking-tight">
-          Your AI. <span className="text-pink-400">Your Fantasy.</span> Anytime.
+  <!-- Hero -->
+  <section class="max-w-7xl mx-auto px-6 pt-8 pb-16">
+    <div class="grid md:grid-cols-2 gap-10 items-center">
+      <div>
+        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold badge">NEW • 3D AI Companions</span>
+        <h1 class="mt-5 text-4xl md:text-6xl font-extrabold tracking-tight">
+          Your AI. <span class="text-pink-400">Your Fantasy.</span> Anytime.
         </h1>
-        <p className="mt-5 text-white/80 text-lg max-w-prose">
-          Choose <em>Girl</em>, <em>Man</em> or <em>Trans</em>. Chat, voice & private rooms with lifelike avatars. Switch outfits. Build your vibe.
+        <p class="mt-5 text-white/80 text-lg max-w-prose">
+          Chat, voice & private rooms with lifelike <strong>3D avatars</strong>. Choose <em>Girl</em>, <em>Man</em>, or <em>Trans</em>, switch outfits,
+          and build your perfect vibe. Early access opening soon.
         </p>
+        <div id="waitlist" class="mt-8">
+          <form name="waitlist" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" class="glass outline-neon rounded-2xl p-3 sm:p-4 flex flex-col sm:flex-row gap-3 glow">
+            <input type="hidden" name="form-name" value="waitlist" />
+            <p class="hidden">
+              <label>Don’t fill this out if you’re human: <input name="bot-field" /></label>
+            </p>
+            <input required type="email" name="email" placeholder="Enter your email" class="w-full bg-transparent border border-white/10 focus:border-pink-400/70 outline-none rounded-xl px-4 py-3 placeholder-white/40" />
+            <label class="flex items-center gap-2 text-xs text-white/70">
+              <input required type="checkbox" class="accent-pink-500" /> I confirm I am 18+ and agree to the privacy notice.
+            </label>
+            <button type="submit" class="btn-primary whitespace-nowrap rounded-xl px-5 py-3 font-semibold">Join waitlist</button>
+          </form>
+          <p class="mt-3 text-xs text-white/60">We’ll email early-access invites. No spam, unsubscribe anytime.</p>
+        </div>
+        <div class="mt-6 flex flex-wrap items-center gap-3 text-xs text-white/60">
+          <span class="px-2 py-1 rounded-md bg-white/5">3D Avatars</span>
+          <span class="px-2 py-1 rounded-md bg-white/5">Outfits</span>
+          <span class="px-2 py-1 rounded-md bg-white/5">Voice & Lip‑sync</span>
+          <span class="px-2 py-1 rounded-md bg-white/5">Private Calls</span>
+          <span class="px-2 py-1 rounded-md bg-white/5">Stripe‑ready</span>
+        </div>
       </div>
-
-      <div className="mt-10 grid sm:grid-cols-3 gap-5">
-        {CATEGORIES.map((c) => (
-          <button
-            key={c.key}
-            onClick={() => onPick(c.key)}
-            className={`group relative rounded-2xl border border-white/10 p-6 text-left bg-white/5 hover:bg-white/10 transition`}
-          >
-            <div className={`absolute -inset-0.5 rounded-2xl opacity-40 blur-2xl -z-10 bg-gradient-to-tr ${c.color}`}></div>
-            <div className="text-4xl">{c.icon}</div>
-            <div className="mt-4 text-xl font-semibold">{c.label}</div>
-            <div className="mt-2 text-white/70 text-sm">3–5 avatars • outfits • voice</div>
-          </button>
-        ))}
-      </div>
-    </main>
-  );
-}
-
-function Category({ cat, onBack, onOpen }: { cat: string; onBack: () => void; onOpen: (idx: number) => void }) {
-  const list = PRESETS[cat] || [];
-  const catMeta = CATEGORIES.find((c) => c.key === cat)!;
-  return (
-    <main className="max-w-6xl mx-auto px-4 pt-4 pb-16">
-      <div className="flex items-center justify-between">
-        <button onClick={onBack} className="text-white/70 hover:text-white">← Back</button>
-        <h2 className="font-semibold text-lg">{catMeta.label} Avatars</h2>
-        <span className="text-white/50 text-sm">Early Access</span>
-      </div>
-
-      <div className="mt-6 grid md:grid-cols-3 gap-5">
-        {list.map((a, i) => (
-          <NeonCard key={i}>
-            <div className="flex items-start gap-4">
-              <div className="text-6xl">{a.emoji}</div>
-              <div className="grow">
-                <div className="font-semibold">{a.name}</div>
-                <div className="text-xs text-white/60">{catMeta.label}</div>
-                <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                  {a.outfits.map((o, j) => (
-                    <span key={j} className="px-2 py-1 rounded bg-white/10">{o}</span>
-                  ))}
+      <div class="relative">
+        <div class="absolute -inset-6 -z-10 blur-3xl opacity-70" style="background: radial-gradient(600px 300px at 30% 30%, rgba(255,45,138,.35), transparent 60%), radial-gradient(600px 300px at 70% 60%, rgba(139,92,246,.25), transparent 60%)"></div>
+        <div class="aspect-[4/5] rounded-3xl glass outline-neon glow p-4 md:p-6 flex flex-col">
+          <div class="flex items-center justify-between text-xs text-white/60">
+            <span>Preview</span>
+            <span>VRM / Ready Player Me</span>
+          </div>
+          <div class="mt-3 grow rounded-2xl bg-black/30 grid grid-rows-[1fr_auto] overflow-hidden">
+            <!-- Fake 3D viewport placeholder -->
+            <div class="relative">
+              <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,.05),transparent)]"></div>
+              <div class="w-full h-full flex items-center justify-center">
+                <div class="text-center">
+                  <div class="text-7xl">🧍‍♀️</div>
+                  <div class="text-white/60 mt-1">3D Avatar View</div>
                 </div>
-                <button
-                  onClick={() => onOpen(i)}
-                  className="mt-4 rounded-lg px-4 py-2 bg-gradient-to-tr from-pink-500 to-violet-500 font-semibold"
-                >
-                  Chat now
-                </button>
               </div>
             </div>
-          </NeonCard>
-        ))}
-      </div>
-    </main>
-  );
-}
-
-function AvatarView({ cat, index, onBack }: { cat: string; index: number; onBack: () => void }) {
-  const avatar = PRESETS[cat][index];
-  const [outfit, setOutfit] = useState(0);
-  const [messages, setMessages] = useState<{ role: "ai" | "me"; text: string }[]>([
-    { role: "ai", text: avatar.lines[0] },
-  ]);
-
-  function send(msg: string) {
-    if (!msg.trim()) return;
-    setMessages((m) => [...m, { role: "me", text: msg }]);
-    // Simulated AI reply
-    const reply = avatar.lines[(messages.length / 2) % avatar.lines.length | 0] || avatar.lines[0];
-    setTimeout(() => setMessages((m) => [...m, { role: "ai", text: reply }]), 600);
-  }
-
-  return (
-    <main className="max-w-6xl mx-auto px-4 pt-4 pb-20">
-      <div className="flex items-center justify-between">
-        <button onClick={onBack} className="text-white/70 hover:text-white">← {avatar.name}</button>
-        <h2 className="font-semibold text-lg">Live Preview</h2>
-        <button className="rounded-lg px-3 py-1.5 text-xs bg-white/10 hover:bg-white/15">Upgrade</button>
-      </div>
-
-      <div className="mt-5 grid md:grid-cols-2 gap-6 items-stretch">
-        <NeonCard>
-          <div className="text-sm text-white/60 flex items-center justify-between">
-            <span>3D Avatar (placeholder)</span>
-            <span>Outfit: {avatar.outfits[outfit]}</span>
-          </div>
-          <div className="mt-4 grid place-items-center aspect-[4/5] rounded-xl bg-black/30">
-            <div className="text-center">
-              <div className="text-7xl">{avatar.emoji}</div>
-              <div className="text-white/60 mt-1">Rotate • Zoom • Speak</div>
-            </div>
-          </div>
-          <div className="mt-3 flex gap-2 flex-wrap">
-            {avatar.outfits.map((o, i) => (
-              <button
-                key={i}
-                onClick={() => setOutfit(i)}
-                className={`px-3 py-2 rounded-lg text-sm ${
-                  i === outfit ? "bg-gradient-to-tr from-pink-500 to-violet-500" : "bg-white/10 hover:bg-white/15"
-                }`}
-              >
-                {o}
-              </button>
-            ))}
-          </div>
-        </NeonCard>
-
-        <NeonCard>
-          <div className="text-sm text-white/60">Chat</div>
-          <div className="mt-3 h-80 overflow-auto space-y-2 pr-1">
-            {messages.map((m, i) => (
-              <div key={i} className={`max-w-[85%] px-3 py-2 rounded-xl text-sm ${m.role === "ai" ? "bg-white/10" : "bg-gradient-to-tr from-pink-500 to-violet-500 ml-auto"}`}>
-                {m.text}
+            <div class="p-3 bg-white/5 flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2 text-xs">
+                <button class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/15">Outfit 1</button>
+                <button class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/15">Outfit 2</button>
+                <button class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/15">Outfit 3</button>
               </div>
-            ))}
-          </div>
-          <ChatInput onSend={send} placeholder={`Message ${avatar.name}…`} />
-          <div className="mt-3 text-xs text-white/60">Voice & lip‑sync will play here. (Coqui/Piper + visemes)</div>
-        </NeonCard>
-      </div>
-    </main>
-  );
-}
-
-function ChatInput({ onSend, placeholder }: { onSend: (text: string) => void; placeholder: string }) {
-  const [val, setVal] = useState("");
-  return (
-    <form
-      className="mt-3 flex gap-2"
-      onSubmit={(e) => {
-        e.preventDefault();
-        onSend(val);
-        setVal("");
-      }}
-    >
-      <input
-        value={val}
-        onChange={(e) => setVal(e.target.value)}
-        placeholder={placeholder}
-        className="w-full bg-transparent border border-white/10 focus:border-pink-400/70 outline-none rounded-xl px-4 py-3 placeholder-white/40"
-      />
-      <button className="rounded-xl px-4 py-3 font-semibold bg-gradient-to-tr from-pink-500 to-violet-500">Send</button>
-    </form>
-  );
-}
-
-function Footer() {
-  const year = new Date().getFullYear();
-  return (
-    <footer className="max-w-6xl mx-auto px-4 pb-10 text-xs text-white/60">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <div>© {year} ONLYhotAI</div>
-          <div className="flex items-center gap-3">
-            <a href="#" className="hover:text-white">Privacy</a>
-            <span aria-hidden>•</span>
-            <a href="#" className="hover:text-white">Terms</a>
-            <span aria-hidden>•</span>
-            <a href="https://onlyloveme.com" target="_blank" rel="noreferrer" className="hover:text-white">Also: OnlyLoveMe.com</a>
+              <button class="px-3 py-2 rounded-lg btn-primary text-sm font-semibold">Chat now</button>
+            </div>
           </div>
         </div>
-        <div className="text-white/70">Early access • Europe/Rome</div>
       </div>
-    </footer>
-  );
-}
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="max-w-7xl mx-auto px-6 pb-20">
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="glass outline-neon rounded-2xl p-6">
+        <div class="text-3xl">🎭</div>
+        <h3 class="mt-3 font-semibold text-lg">Personalities & Outfits</h3>
+        <p class="mt-2 text-white/70 text-sm">Pick <em>Girl</em>, <em>Man</em> or <em>Trans</em>. Tune style, mood and chemistry. Switch looks in one tap.</p>
+      </div>
+      <div class="glass outline-neon rounded-2xl p-6">
+        <div class="text-3xl">🎤</div>
+        <h3 class="mt-3 font-semibold text-lg">Voice, Lip‑sync & Calls</h3>
+        <p class="mt-2 text-white/70 text-sm">Natural voices with real‑time lip‑sync. Private voice/video rooms when you’re ready.</p>
+      </div>
+      <div class="glass outline-neon rounded-2xl p-6">
+        <div class="text-3xl">🛡️</div>
+        <h3 class="mt-3 font-semibold text-lg">Safety & Privacy</h3>
+        <p class="mt-2 text-white/70 text-sm">18+, consent‑first, GDPR‑ready. Your data stays encrypted and portable.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="max-w-7xl mx-auto px-6 pb-16 text-xs text-white/60">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div class="space-y-1">
+        <div>© <span id="year"></span> ONLYhotAI</div>
+        <div class="flex items-center gap-3">
+          <a href="#" class="hover:text-white">Privacy</a>
+          <span aria-hidden="true">•</span>
+          <a href="#" class="hover:text-white">Terms</a>
+          <span aria-hidden="true">•</span>
+          <a href="https://onlyloveme.com" class="hover:text-white" target="_blank" rel="noopener">Explore: OnlyLoveMe.com</a>
+        </div>
+      </div>
+      <div class="text-white/70">Built for early access • Rome time (CET)</div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
